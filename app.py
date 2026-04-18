@@ -233,7 +233,7 @@ def delete_blog(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
-# CRUD Series
+# CRUD Series (completo)
 @app.route('/api/series', methods=['POST'])
 @login_required
 def add_serie():
@@ -250,6 +250,14 @@ def add_serie():
     datos["proximo_serie_id"] += 1
     guardar_datos(datos)
     return jsonify({"success": True, "serie": nueva})
+
+@app.route('/api/series/<int:id>', methods=['GET'])
+def get_serie(id):
+    datos = cargar_datos()
+    serie = next((s for s in datos.get("series", []) if s["id"] == id), None)
+    if not serie:
+        return jsonify({"error": "Serie no encontrada"}), 404
+    return jsonify(serie)
 
 @app.route('/api/series/<int:id>', methods=['PUT'])
 @login_required
@@ -349,7 +357,7 @@ def responder_comentario(id):
     datos = cargar_datos()
     data = request.json
     respuesta = {
-        "nickname": "Zniper",
+        "nickname": data.get('nickname', 'Zniper'),
         "texto": data.get('texto', ''),
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
