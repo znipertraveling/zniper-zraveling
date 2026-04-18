@@ -6,12 +6,12 @@ import hashlib
 import uuid
 from functools import wraps
 from werkzeug.utils import secure_filename
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'zniper-secreto-2026'
 CORS(app)
 
-# Configuración
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -25,24 +25,51 @@ CREDENCIALES_FILE = 'credenciales.json'
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Datos por defecto
-if not os.path.exists(DATOS_FILE):
-    with open(DATOS_FILE, 'w', encoding='utf-8') as f:
-        json.dump({
-            "titulo": "Zniper Zraveling",
-            "subtitulo": "fotografía de autor · calle como poema · instante como herida",
-            "firma": "— mi ojo, mi sombra, mi ciudad —",
-            "categorias": ["Soledades", "Silencios", "Miradas"],
-            "fotos": [],
-            "proximo_id": 1
-        }, f, indent=2, ensure_ascii=False)
+# Datos por defecto (estructura completa)
+DATOS_POR_DEFECTO = {
+    "titulo": "Zniper Zraveling",
+    "subtitulo": "fotografía de autor · calle como poema · instante como herida",
+    "firma": "— mi ojo, mi sombra, mi ciudad —",
+    "categorias": ["Soledades", "Silencios", "Miradas"],
+    "fotos": [],
+    "proximo_id": 1,
+    "blog": [],
+    "proximo_blog_id": 1,
+    "paginas": [
+        {"id": 1, "titulo": "Sobre mí", "slug": "sobre-mi", "contenido": "Escribe aquí tu biografía...", "visible": True}
+    ],
+    "proximo_pagina_id": 2,
+    "comentarios": [],
+    "proximo_comentario_id": 1,
+    "moderacion_comentarios": True   # True = aprobación automática, False = manual
+}
 
-if not os.path.exists(CREDENCIALES_FILE):
+CREDENCIALES_POR_DEFECTO = {
+    "nickname": "zniper",
+    "password_hash": hashlib.sha256("zniper2026".encode()).hexdigest()
+}
+
+def cargar_datos():
+    if not os.path.exists(DATOS_FILE):
+        with open(DATOS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(DATOS_POR_DEFECTO, f, indent=2, ensure_ascii=False)
+    with open(DATOS_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def guardar_datos(datos):
+    with open(DATOS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(datos, f, indent=2, ensure_ascii=False)
+
+def cargar_credenciales():
+    if not os.path.exists(CREDENCIALES_FILE):
+        with open(CREDENCIALES_FILE, 'w') as f:
+            json.dump(CREDENCIALES_POR_DEFECTO, f, indent=2)
+    with open(CREDENCIALES_FILE, 'r') as f:
+        return json.load(f)
+
+def guardar_credenciales(credenciales):
     with open(CREDENCIALES_FILE, 'w') as f:
-        json.dump({
-            "nickname": "zniper",
-            "password_hash": hashlib.sha256("zniper2026".encode()).hexdigest()
-        }, f)
+        json.dump(credenciales, f, indent=2)
 
 def login_required(f):
     @wraps(f)
@@ -52,18 +79,22 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def cargar_datos():
-    with open(DATOS_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def guardar_datos(datos):
-    with open(DATOS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(datos, f, indent=2, ensure_ascii=False)
-
 # ========== RUTAS PÚBLICAS ==========
 @app.route('/')
 def index():
     return send_from_directory('static', 'galeria.html')
+
+@app.route('/blog')
+def blog():
+    return send_from_directory('static', 'blog.html')
+
+@app.route('/blog/<int:id>')
+def articulo(id):
+    return send_from_directory('static', 'articulo.html')
+
+@app.route('/pagina/<slug>')
+def pagina(slug):
+    return send_from_directory('static', 'pagina.html')
 
 @app.route('/login')
 def login_page():
@@ -86,8 +117,7 @@ def uploaded_file(filename):
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    with open(CREDENCIALES_FILE) as f:
-        cred = json.load(f)
+    cred = cargar_credenciales()
     if data.get('nickname') == cred['nickname'] and hashlib.sha256(data.get('password', '').encode()).hexdigest() == cred['password_hash']:
         session['logged_in'] = True
         return jsonify({"success": True})
@@ -106,7 +136,11 @@ def get_datos():
         "subtitulo": datos["subtitulo"],
         "firma": datos["firma"],
         "categorias": datos["categorias"],
-        "fotos": datos["fotos"]
+        "fotos": datos["fotos"],
+        "blog": datos["blog"],
+        "paginas": datos["paginas"],
+        "comentarios": datos["comentarios"],
+        "moderacion_comentarios": datos.get("moderacion_comentarios", True)
     })
 
 @app.route('/api/datos', methods=['POST'])
@@ -114,14 +148,9 @@ def get_datos():
 def update_datos():
     datos = cargar_datos()
     data = request.json
-    if 'titulo' in data:
-        datos['titulo'] = data['titulo']
-    if 'subtitulo' in data:
-        datos['subtitulo'] = data['subtitulo']
-    if 'firma' in data:
-        datos['firma'] = data['firma']
-    if 'categorias' in data:
-        datos['categorias'] = data['categorias']
+    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios']:
+        if key in data:
+            datos[key] = data[key]
     guardar_datos(datos)
     return jsonify({"success": True})
 
@@ -129,8 +158,140 @@ def update_datos():
 @login_required
 def reordenar_categorias():
     datos = cargar_datos()
-    nuevas_categorias = request.json.get('categorias', [])
-    datos['categorias'] = nuevas_categorias
+    datos['categorias'] = request.json.get('categorias', [])
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/blog', methods=['POST'])
+@login_required
+def add_blog():
+    datos = cargar_datos()
+    data = request.json
+    nuevo = {
+        "id": datos["proximo_blog_id"],
+        "titulo": data.get('titulo', 'Sin título'),
+        "texto": data.get('texto', ''),
+        "imagen": data.get('imagen', ''),
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    datos["blog"].append(nuevo)
+    datos["proximo_blog_id"] += 1
+    guardar_datos(datos)
+    return jsonify({"success": True, "articulo": nuevo})
+
+@app.route('/api/blog/<int:id>', methods=['PUT'])
+@login_required
+def update_blog(id):
+    datos = cargar_datos()
+    data = request.json
+    for art in datos["blog"]:
+        if art["id"] == id:
+            art.update(data)
+            break
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/blog/<int:id>', methods=['DELETE'])
+@login_required
+def delete_blog(id):
+    datos = cargar_datos()
+    datos["blog"] = [a for a in datos["blog"] if a["id"] != id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/paginas', methods=['POST'])
+@login_required
+def add_pagina():
+    datos = cargar_datos()
+    data = request.json
+    slug = data.get('slug', data.get('titulo', '').lower().replace(' ', '-'))
+    nueva = {
+        "id": datos["proximo_pagina_id"],
+        "titulo": data.get('titulo', 'Nueva página'),
+        "slug": slug,
+        "contenido": data.get('contenido', ''),
+        "visible": data.get('visible', True)
+    }
+    datos["paginas"].append(nueva)
+    datos["proximo_pagina_id"] += 1
+    guardar_datos(datos)
+    return jsonify({"success": True, "pagina": nueva})
+
+@app.route('/api/paginas/<int:id>', methods=['PUT'])
+@login_required
+def update_pagina(id):
+    datos = cargar_datos()
+    data = request.json
+    for pag in datos["paginas"]:
+        if pag["id"] == id:
+            pag.update(data)
+            if 'titulo' in data and 'slug' not in data:
+                pag['slug'] = data['titulo'].lower().replace(' ', '-')
+            break
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/paginas/<int:id>', methods=['DELETE'])
+@login_required
+def delete_pagina(id):
+    datos = cargar_datos()
+    datos["paginas"] = [p for p in datos["paginas"] if p["id"] != id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/comentarios', methods=['POST'])
+def add_comentario():
+    datos = cargar_datos()
+    data = request.json
+    nuevo = {
+        "id": datos["proximo_comentario_id"],
+        "tipo": data.get('tipo'),  # 'blog' o 'serie'
+        "entidad_id": data.get('entidad_id'),
+        "nickname": data.get('nickname', 'Anónimo'),
+        "calificacion": data.get('calificacion', 0),
+        "texto": data.get('texto', ''),
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "aprobado": datos.get("moderacion_comentarios", True),  # True si moderación OFF, False si requiere aprobación
+        "respuestas": []
+    }
+    datos["comentarios"].append(nuevo)
+    datos["proximo_comentario_id"] += 1
+    guardar_datos(datos)
+    return jsonify({"success": True, "comentario": nuevo})
+
+@app.route('/api/comentarios/<int:id>/aprobar', methods=['POST'])
+@login_required
+def aprobar_comentario(id):
+    datos = cargar_datos()
+    for com in datos["comentarios"]:
+        if com["id"] == id:
+            com["aprobado"] = True
+            break
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/comentarios/<int:id>', methods=['DELETE'])
+@login_required
+def delete_comentario(id):
+    datos = cargar_datos()
+    datos["comentarios"] = [c for c in datos["comentarios"] if c["id"] != id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/comentarios/<int:id>/responder', methods=['POST'])
+@login_required
+def responder_comentario(id):
+    datos = cargar_datos()
+    data = request.json
+    respuesta = {
+        "nickname": "Zniper",
+        "texto": data.get('texto', ''),
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    for com in datos["comentarios"]:
+        if com["id"] == id:
+            com["respuestas"].append(respuesta)
+            break
     guardar_datos(datos)
     return jsonify({"success": True})
 
@@ -206,22 +367,14 @@ def subir_foto():
 @login_required
 def update_credenciales():
     data = request.json
-    with open(CREDENCIALES_FILE) as f:
-        cred = json.load(f)
+    cred = cargar_credenciales()
     if 'nickname' in data and data['nickname']:
         cred['nickname'] = data['nickname']
     if 'password' in data and data['password']:
         cred['password_hash'] = hashlib.sha256(data['password'].encode()).hexdigest()
-    with open(CREDENCIALES_FILE, 'w') as f:
-        json.dump(cred, f)
+    guardar_credenciales(cred)
     return jsonify({"success": True})
 
 if __name__ == '__main__':
-    print("=" * 50)
-    print("🚀 ZNIPER ZRAVELING - SERVIDOR COMPLETO")
-    print("=" * 50)
-    print("🔗 Galería: http://127.0.0.1:5002")
-    print("🔐 Admin: http://127.0.0.1:5002/admin")
-    print("📝 Login: http://127.0.0.1:5002/login")
-    print("=" * 50)
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    port = int(os.environ.get('PORT', 5002))
+    app.run(host='0.0.0.0', port=port, debug=True)
