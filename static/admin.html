@@ -2,223 +2,102 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zniper Admin · Control Total</title>
+    <title>Zniper Admin · Funcional</title>
     <style>
-        :root { --bg: #050505; --panel: #0a0a0a; --accent: #fff; --text: #e0e0e0; --border: #222; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; border-right: 1px solid var(--border); background: var(--panel); padding: 20px; display: flex; flex-direction: column; }
-        .brand { font-size: 0.8rem; letter-spacing: 3px; text-align: center; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; font-weight: bold; }
-        .nav-btn { width: 100%; padding: 12px; margin-bottom: 5px; background: none; border: none; color: #666; text-align: left; cursor: pointer; transition: 0.3s; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; border-radius: 4px; }
-        .nav-btn:hover, .nav-btn.active { color: var(--accent); background: #111; }
-
-        /* Contenido */
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .tab-panel { display: none; max-width: 900px; margin: 0 auto; }
-        .tab-panel.active { display: block; animation: fadeIn 0.4s ease; }
-        
-        h2 { font-weight: 200; font-size: 1.8rem; margin-bottom: 30px; border-left: 3px solid var(--accent); padding-left: 15px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.65rem; color: #555; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
-        input, textarea, select { width: 100%; background: #000; border: 1px solid #333; padding: 12px; color: white; border-radius: 4px; font-size: 0.9rem; }
-        .btn-save { background: var(--accent); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; border-radius: 4px; margin-top: 10px; }
-        
-        /* Cards de Items */
-        .item-list { margin-top: 30px; display: grid; gap: 10px; }
-        .item-card { background: #111; border: 1px solid var(--border); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; }
-        .btn-del { color: #ff4444; background: none; border: none; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --bg: #050505; --accent: #fff; --text: #ccc; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; margin: 0; }
+        .sidebar { width: 220px; border-right: 1px solid #222; height: 100vh; padding: 20px; }
+        .main { flex: 1; padding: 40px; }
+        .tab { display: none; }
+        .tab.active { display: block; }
+        .nav-btn { display: block; width: 100%; padding: 10px; background: none; color: #666; border: none; text-align: left; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
+        .nav-btn.active { color: #fff; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #333; color: #fff; }
+        button.save { background: #fff; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
-<div class="sidebar">
-    <div class="brand">ZNIPER ADMIN</div>
-    <button class="nav-btn active" onclick="showTab(event, 'tab-config')">⚙️ Configuración</button>
-    <button class="nav-btn" onclick="showTab(event, 'tab-series')">🎬 Series</button>
-    <button class="nav-btn" onclick="showTab(event, 'tab-blog')">📰 Blog</button>
-    <button class="nav-btn" onclick="showTab(event, 'tab-paginas')">📄 Páginas</button>
-    <button class="nav-btn" onclick="showTab(event, 'tab-redes')">🔗 Redes</button>
-    <button class="nav-btn" onclick="showTab(event, 'tab-cred')">🔐 Acceso</button>
-    <button class="nav-btn" style="margin-top:auto; color: #ff4444;" onclick="location.href='/login'">Cerrar Sesión</button>
-</div>
-
-<div class="main">
-    <div id="tab-config" class="tab-panel active">
-        <h2>Ajustes Generales</h2>
-        <div class="form-group">
-            <label>Título del Sitio</label>
-            <input type="text" id="conf-titulo">
-        </div>
-        <button class="btn-save" onclick="guardarTodo()">Guardar Cambios</button>
+    <div class="sidebar">
+        <h3>ZNIPER</h3>
+        <button class="nav-btn active" onclick="showTab('t-galeria')">Galería</button>
+        <button class="nav-btn" onclick="showTab('t-blog')">Blog</button>
+        <button class="nav-btn" onclick="showTab('t-redes')">Redes</button>
     </div>
-
-    <div id="tab-series" class="tab-panel">
-        <h2>Gestión de Series</h2>
-        <div class="form-group">
-            <label>Título de la Serie</label>
-            <input type="text" id="serie-titulo">
-            <label style="margin-top:10px">Descripción</label>
-            <textarea id="serie-desc" rows="3"></textarea>
-            <button class="btn-save" onclick="crearSerie()">+ Crear Serie</button>
+    <div class="main">
+        <div id="t-galeria" class="tab active">
+            <h2>Subir a Galería</h2>
+            <input type="file" id="f-file">
+            <input type="text" id="f-tema" placeholder="Tema/Categoría">
+            <button class="save" onclick="subirFoto()">Subir Imagen</button>
+            <div id="lista-fotos" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:20px;"></div>
         </div>
-        <div id="list-series" class="item-list"></div>
-    </div>
-
-    <div id="tab-blog" class="tab-panel">
-        <h2>Entradas de Blog</h2>
-        <div class="form-group">
-            <label>Título del Artículo</label>
-            <input type="text" id="blog-titulo">
-            <label style="margin-top:10px">Texto (con estrellas habilitadas)</label>
-            <textarea id="blog-texto" rows="5"></textarea>
-            <button class="btn-save" onclick="crearBlog()">Publicar Artículo</button>
-        </div>
-        <div id="list-blog" class="item-list"></div>
-    </div>
-
-    <div id="tab-paginas" class="tab-panel">
-        <h2>Páginas Dinámicas</h2>
-        <div class="form-group">
-            <label>Nombre de Sección</label>
-            <input type="text" id="pag-titulo">
-            <label style="margin-top:10px">Tipo de Estructura</label>
-            <select id="pag-tipo">
-                <option value="normal">Texto Normal</option>
-                <option value="galeria">Galería Fotográfica</option>
-                <option value="blog">Listado de Blog</option>
-            </select>
-            <button class="btn-save" onclick="crearPagina()">Agregar Página</button>
-        </div>
-        <div id="list-paginas" class="item-list"></div>
-    </div>
-
-    <div id="tab-redes" class="tab-panel">
-        <h2>Redes Sociales</h2>
-        <div class="form-group">
-            <label>Plataforma (Ej: Instagram)</label>
-            <input type="text" id="red-nombre">
-            <label style="margin-top:10px">URL Completa</label>
-            <input type="text" id="red-url">
-            <button class="btn-save" onclick="agregarRed()">Vincular Red</button>
-        </div>
-        <div id="list-redes" class="item-list"></div>
-    </div>
-
-    <div id="tab-cred" class="tab-panel">
-        <h2>Credenciales de Acceso</h2>
-        <div class="form-group">
-            <label>Nuevo Nickname</label>
-            <input type="text" id="nuevo-nick">
-            <label style="margin-top:10px">Nueva Contraseña</label>
-            <input type="password" id="nuevo-pass">
-        </div>
-        <button class="btn-save" style="background: #ff4444; color: #fff;" onclick="actualizarAcceso()">Actualizar Seguridad</button>
-    </div>
-</div>
-
-<script>
-    let datos = {};
-
-    async function cargarDatos() {
-        const res = await fetch('/api/datos');
-        datos = await res.json();
         
-        // Cargar campos de configuración
-        document.getElementById('conf-titulo').value = datos.config.titulo || '';
-        
-        // Renderizar Listas
-        renderLista('list-series', datos.series, 'series');
-        renderLista('list-blog', datos.blog, 'blog');
-        renderLista('list-paginas', datos.paginas, 'paginas');
-        renderListaRedes();
-    }
+        <div id="t-blog" class="tab">
+            <h2>Nuevo Artículo</h2>
+            <input type="text" id="b-titulo" placeholder="Título">
+            <textarea id="b-texto" placeholder="Contenido..."></textarea>
+            <button class="save" onclick="guardarBlog()">Publicar</button>
+        </div>
 
-    function showTab(e, id) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        e.currentTarget.classList.add('active');
-    }
+        <div id="t-redes" class="tab">
+            <h2>Redes</h2>
+            <div id="lista-redes"></div>
+            <input type="text" id="r-nombre" placeholder="Red">
+            <input type="text" id="r-url" placeholder="URL">
+            <button class="save" onclick="agregarRed()">Guardar Red</button>
+        </div>
+    </div>
 
-    function renderLista(elemId, lista, tipo) {
-        const container = document.getElementById(elemId);
-        container.innerHTML = lista.map((item, index) => `
-            <div class="item-card">
-                <span>${item.titulo}</span>
-                <button class="btn-del" onclick="eliminarItem('${tipo}', ${index})">ELIMINAR</button>
-            </div>
-        `).join('');
-    }
+    <script>
+        let datos = { fotos: [], blog: [], redes: [], config: {} };
 
-    function renderListaRedes() {
-        const container = document.getElementById('list-redes');
-        container.innerHTML = (datos.redes || []).map((red, index) => `
-            <div class="item-card">
-                <span>${red.nombre} - ${red.url}</span>
-                <button class="btn-del" onclick="eliminarItem('redes', ${index})">ELIMINAR</button>
-            </div>
-        `).join('');
-    }
-
-    async function guardarTodo() {
-        datos.config.titulo = document.getElementById('conf-titulo').value;
-        await fetch('/api/update_all', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(datos)
-        });
-        alert("Datos sincronizados con Railway");
-    }
-
-    function crearSerie() {
-        const titulo = document.getElementById('serie-titulo').value;
-        if(!titulo) return;
-        datos.series.push({ id: Date.now(), titulo, descripcion: document.getElementById('serie-desc').value, fotos: [] });
-        guardarTodo(); cargarDatos();
-    }
-
-    function crearBlog() {
-        const titulo = document.getElementById('blog-titulo').value;
-        if(!titulo) return;
-        datos.blog.push({ id: Date.now(), titulo, texto: document.getElementById('blog-texto').value, fecha: new Date().toLocaleDateString() });
-        guardarTodo(); cargarDatos();
-    }
-
-    function crearPagina() {
-        const titulo = document.getElementById('pag-titulo').value;
-        if(!titulo) return;
-        datos.paginas.push({ id: Date.now(), titulo, tipo: document.getElementById('pag-tipo').value });
-        guardarTodo(); cargarDatos();
-    }
-
-    function agregarRed() {
-        if(!datos.redes) datos.redes = [];
-        datos.redes.push({ nombre: document.getElementById('red-nombre').value, url: document.getElementById('red-url').value });
-        guardarTodo(); cargarDatos();
-    }
-
-    function eliminarItem(tipo, index) {
-        if(confirm("¿Seguro que quieres borrarlo?")) {
-            datos[tipo].splice(index, 1);
-            guardarTodo(); cargarDatos();
+        async function cargar() {
+            const r = await fetch('/api/datos');
+            datos = await r.json();
+            renderFotos();
+            renderRedes();
         }
-    }
 
-    async function actualizarAcceso() {
-        const nick = document.getElementById('nuevo-nick').value;
-        const pass = document.getElementById('nuevo-pass').value;
-        if(!nick || !pass) return alert("Completa ambos campos");
-        
-        // Aquí puedes llamar a una ruta específica o guardar en el JSON si tu app.py lo permite
-        alert("Credenciales enviadas. Se aplicarán al reiniciar el servidor.");
-    }
+        async function sincronizar() {
+            await fetch('/api/save', { // Asegúrate de que en app.py la ruta sea /api/save o /api/update_all
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(datos)
+            });
+            alert("Sincronizado con el servidor");
+            cargar();
+        }
 
-    cargarDatos();
-</script>
+        async function subirFoto() {
+            const file = document.getElementById('f-file').files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            const r = await fetch('/api/upload', { method: 'POST', body: formData });
+            const res = await r.json();
+            datos.fotos.push({ url: res.url, tema: document.getElementById('f-tema').value });
+            sincronizar();
+        }
+
+        function agregarRed() {
+            if(!datos.redes) datos.redes = [];
+            datos.redes.push({ nombre: document.getElementById('r-nombre').value, url: document.getElementById('r-url').value });
+            sincronizar();
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function renderFotos() {
+            document.getElementById('lista-fotos').innerHTML = datos.fotos.map(f => `<img src="${f.url}" style="width:100%">`).join('');
+        }
+
+        function renderRedes() {
+            document.getElementById('lista-redes').innerHTML = (datos.redes || []).map(r => `<div>${r.nombre}</div>`).join('');
+        }
+
+        cargar();
+    </script>
 </body>
 </html>

@@ -2,233 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zniper Traveling · Fotografía de Autor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Zniper Traveling</title>
     <style>
-        :root { --bg: #050505; --text: #f0f0f0; --accent: #fff; --gray: #888; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
-        
-        /* Navegación */
-        nav { position: fixed; top: 0; width: 100%; padding: 30px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; background: linear-gradient(to bottom, rgba(5,5,5,0.9), transparent); transition: 0.3s; }
-        .logo { font-size: 1.2rem; letter-spacing: 5px; font-weight: 200; text-decoration: none; color: #fff; }
-        .menu { display: flex; gap: 25px; }
-        .menu a { text-decoration: none; color: var(--gray); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
-        .menu a:hover, .menu a.active { color: var(--accent); }
-
-        /* Secciones */
-        section { display: none; padding: 120px 40px 60px; min-height: 100vh; }
-        section.active { display: block; animation: fadeIn 0.8s ease; }
-
-        /* Galería Masonry */
-        .grid { columns: 3 300px; column-gap: 15px; width: 100%; }
-        .grid-item { margin-bottom: 15px; break-inside: avoid; background: #111; position: relative; cursor: pointer; }
-        .grid-item img { width: 100%; display: block; filter: grayscale(100%); transition: 0.5s; }
-        .grid-item:hover img { filter: grayscale(0%); }
-        
-        /* Filtros de Temas */
-        .filters { margin-bottom: 40px; display: flex; gap: 20px; flex-wrap: wrap; }
-        .filter-btn { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; padding-bottom: 5px; border-bottom: 1px solid transparent; }
-        .filter-btn.active { color: #fff; border-color: #fff; }
-
-        /* Blog tarjetas pequeñas */
-        .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-        .blog-card { background: #0a0a0a; border: 1px solid #1a1a1a; cursor: pointer; transition: 0.3s; }
-        .blog-card:hover { transform: translateY(-5px); border-color: #333; }
-        .blog-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .blog-info { padding: 20px; }
-        .blog-info h3 { font-weight: 300; font-size: 1rem; margin-bottom: 10px; }
-        .blog-info p { font-size: 0.8rem; color: var(--gray); line-height: 1.6; }
-
-        /* Modal Expandido */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; overflow-y: auto; padding: 60px 20px; }
-        .modal-content { max-width: 800px; margin: 0 auto; }
-        .close-modal { position: fixed; top: 30px; right: 40px; font-size: 2rem; cursor: pointer; font-weight: 100; }
-        .stars { color: #ffd700; margin: 20px 0; font-size: 1.2rem; }
-        
-        /* Comentarios */
-        .comentarios-section { margin-top: 50px; border-top: 1px solid #222; padding-top: 30px; }
-        .comment-item { margin-bottom: 20px; font-size: 0.9rem; }
-        .comment-user { font-weight: bold; font-size: 0.7rem; color: var(--gray); text-transform: uppercase; }
-        
-        /* Footer */
-        footer { padding: 60px 40px; border-top: 1px solid #111; text-align: center; }
-        .social-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
-        .social-links a { color: var(--gray); text-decoration: none; font-size: 1.2rem; transition: 0.3s; }
-        .social-links a:hover { color: #fff; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @media (max-width: 768px) { .grid { columns: 1; } }
+        body { background: #050505; color: #fff; font-family: sans-serif; margin: 0; }
+        nav { padding: 40px; border-bottom: 1px solid #111; display: flex; gap: 20px; }
+        .galeria { padding: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .galeria img { width: 100%; filter: grayscale(1); transition: 0.5s; }
+        .galeria img:hover { filter: grayscale(0); }
+        footer { padding: 40px; text-align: center; border-top: 1px solid #111; }
+        a { color: #666; text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-
-<nav>
-    <a href="#" class="logo" onclick="showSection('inicio')">ZNIPER</a>
-    <div class="menu" id="main-menu">
-        </div>
-</nav>
-
-<section id="inicio" class="active">
-    <div class="filters" id="theme-filters">
-        <button class="filter-btn active" onclick="filterByTheme('todos')">Todos</button>
-    </div>
-    <div class="grid" id="main-gallery"></div>
-</section>
-
-<section id="blog">
-    <div class="blog-grid" id="blog-container"></div>
-</section>
-
-<section id="dinamica">
-    <div id="page-content"></div>
-</section>
-
-<div id="itemModal" class="modal">
-    <span class="close-modal" onclick="closeModal()">&times;</span>
-    <div class="modal-content" id="modal-body"></div>
-</div>
-
-<footer>
-    <div class="social-links" id="footer-socials"></div>
-    <p style="font-size: 0.6rem; color: #333; letter-spacing: 2px;">© 2026 ZNIPER TRAVELING</p>
-</footer>
-
-<script>
-    let siteData = {};
-
-    async function init() {
-        const res = await fetch('/api/datos');
-        siteData = await res.json();
-        
-        renderNav();
-        renderGallery('todos');
-        renderBlog();
-        renderSocials();
-        renderFilters();
-    }
-
-    function renderNav() {
-        const menu = document.getElementById('main-menu');
-        let html = `<a href="#" onclick="showSection('inicio')">Galería</a>`;
-        html += `<a href="#" onclick="showSection('blog')">Bitácora</a>`;
-        
-        siteData.paginas.forEach(p => {
-            html += `<a href="#" onclick="showPage('${p.id}')">${p.titulo}</a>`;
-        });
-        menu.innerHTML = html;
-    }
-
-    function renderFilters() {
-        const fCont = document.getElementById('theme-filters');
-        const temas = [...new Set(siteData.fotos.map(f => f.tema))].filter(t => t);
-        temas.forEach(t => {
-            fCont.innerHTML += `<button class="filter-btn" onclick="filterByTheme('${t}')">${t}</button>`;
-        });
-    }
-
-    function renderGallery(tema) {
-        const container = document.getElementById('main-gallery');
-        const filtradas = tema === 'todos' ? siteData.fotos : siteData.fotos.filter(f => f.tema === tema);
-        
-        container.innerHTML = filtradas.map(f => `
-            <div class="grid-item" onclick="openPhoto('${f.url}')">
-                <img src="${f.url}" loading="lazy">
-            </div>
-        `).join('');
-    }
-
-    function renderBlog() {
-        const cont = document.getElementById('blog-container');
-        cont.innerHTML = siteData.blog.map(b => `
-            <div class="blog-card" onclick="openBlog('${b.id}')">
-                <img src="${b.imagen || ''}" class="blog-img">
-                <div class="blog-info">
-                    <h3>${b.titulo}</h3>
-                    <p>${b.texto.substring(0, 100)}...</p>
-                    <div style="color: gold; margin-top:10px">★★★★★</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function openBlog(id) {
-        const post = siteData.blog.find(b => b.id == id);
-        const modal = document.getElementById('itemModal');
-        const body = document.getElementById('modal-body');
-        
-        body.innerHTML = `
-            <img src="${post.imagen}" style="width:100%; margin-bottom:30px">
-            <h1 style="font-weight:200; font-size:2.5rem">${post.titulo}</h1>
-            <p style="margin: 30px 0; line-height:1.8; color:#ccc">${post.texto}</p>
-            <div class="comentarios-section">
-                <h3>Comentarios</h3>
-                <div id="comments-list"></div>
-                <div style="margin-top:30px">
-                    <input type="text" id="c-nick" placeholder="Tu nombre" style="width:48%; padding:10px; background:#111; border:1px solid #333; color:white">
-                    <select id="c-star" style="width:48%; padding:10px; background:#111; border:1px solid #333; color:white">
-                        <option value="5">5 Estrellas</option>
-                        <option value="4">4 Estrellas</option>
-                    </select>
-                    <textarea id="c-text" placeholder="Escribe un comentario..." style="width:100%; padding:10px; background:#111; border:1px solid #333; color:white; margin-top:10px"></textarea>
-                    <button onclick="sendComment('${id}')" style="background:white; border:none; padding:10px 20px; margin-top:10px; cursor:pointer">PUBLICAR</button>
-                </div>
-            </div>
-        `;
-        modal.style.display = 'block';
-        renderComments(id);
-    }
-
-    async function sendComment(entidadId) {
-        const comment = {
-            entidad_id: entidadId,
-            user: document.getElementById('c-nick').value,
-            texto: document.getElementById('c-text').value,
-            estrellas: document.getElementById('c-star').value
-        };
-        await fetch('/api/comentar', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(comment)
-        });
-        openBlog(entidadId); // Recargar
-    }
-
-    function renderComments(id) {
-        const list = document.getElementById('comments-list');
-        const filtrados = (siteData.comentarios || []).filter(c => c.entidad_id == id);
-        list.innerHTML = filtrados.map(c => `
-            <div class="comment-item">
-                <div class="comment-user">${c.user} - ${"★".repeat(c.estrellas)}</div>
-                <div>${c.texto}</div>
-            </div>
-        `).join('');
-    }
-
-    function showSection(id) {
-        document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        closeModal();
-    }
-
-    function closeModal() { document.getElementById('itemModal').style.display = 'none'; }
+    <nav id="menu">
+        <a href="/">INICIO</a>
+    </nav>
     
-    function filterByTheme(t) {
-        renderGallery(t);
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText.toLowerCase() === t.toLowerCase() || (t === 'todos' && b.innerText === 'Todos'));
-        });
-    }
+    <div class="galeria" id="contenedor-fotos"></div>
 
-    function renderSocials() {
-        const cont = document.getElementById('footer-socials');
-        cont.innerHTML = (siteData.redes || []).map(r => `
-            <a href="${r.url}" target="_blank">${r.nombre}</a>
-        `).join('');
-    }
+    <footer id="footer">
+        <div id="redes-sociales"></div>
+    </footer>
 
-    init();
-</script>
+    <script>
+        async function cargarWeb() {
+            const r = await fetch('/api/datos');
+            const datos = await r.json();
+            
+            // Render fotos
+            document.getElementById('contenedor-fotos').innerHTML = datos.fotos.map(f => `
+                <img src="${f.url}">
+            `).join('');
+
+            // Render redes
+            document.getElementById('redes-sociales').innerHTML = (datos.redes || []).map(r => `
+                <a href="${r.url}" target="_blank" style="margin: 0 10px">${r.nombre.toUpperCase()}</a>
+            `).join('');
+        }
+        cargarWeb();
+    </script>
 </body>
 </html>
